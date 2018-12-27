@@ -1,5 +1,6 @@
 # Maven #
 target/
+build/
 
 # IDEA #
 .idea/
