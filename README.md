@@ -1,2 +1,2 @@
-# springmvcwheel
-springmvc的小轮
+# mvcwheel
+mvc小轮子

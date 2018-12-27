@@ -134,7 +134,7 @@ public class DispatcherServlet extends HttpServlet {
         }else {
             initRequestMapingMap(basePackage);
         }
-        System.out.println("----初始化结束---");
+        logger.info("---初始化结束---");
     }
     
     /**
