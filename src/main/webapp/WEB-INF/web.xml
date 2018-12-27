@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
 <servlet>
-    <servlet-name>AnnotationHandleServlet</servlet-name>
-    <servlet-class>com.sunlight001.web.controller.AnnotationHandleServlet</servlet-class>
+    <servlet-name>DispatcherServlet</servlet-name>
+    <servlet-class>com.sunlight001.web.controller.DispatcherServlet</servlet-class>
     <init-param>
-         <description>配置要扫描包及其子包, 如果有多个包,以逗号分隔</description>
+        <description>配置要扫描包及其子包, 如果有多个包,以逗号分隔</description>
         <param-name>basePackage</param-name>
         <param-value>com.sunlight001.web.controller,com.sunlight001.web.UI</param-value>
-        <!-- <param-value>me.gacl.web.controller</param-value> -->
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
 
   <servlet-mapping>
-    <servlet-name>AnnotationHandleServlet</servlet-name>
+    <servlet-name>DispatcherServlet</servlet-name>
     <!-- 拦截所有以.do后缀结尾的请求 -->
     <url-pattern>*.do</url-pattern>
   </servlet-mapping>

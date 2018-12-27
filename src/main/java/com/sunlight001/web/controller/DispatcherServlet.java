@@ -3,7 +3,14 @@ package com.sunlight001.web.controller;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,7 +32,16 @@ import com.sunlight001.web.view.View;
  * <p>Description: AnnotationHandleServlet作为自定义注解的核心处理器以及负责调用目标业务方法处理用户请求<p>
  * @version 1.0 V
  */
-public class AnnotationHandleServlet extends HttpServlet {
+public class DispatcherServlet extends HttpServlet {
+    private Logger logger = Logger.getLogger("init DispatcherServlet");
+    private Properties properties = new Properties();
+    private List<String> clsNames = new ArrayList<>();
+    //ioc container
+    private Map<String,Object> ioc = new HashMap<>();
+    private Map<String,Method> handlerMapping = new HashMap<>();
+    private Map<String,Object> controllerMapping = new HashMap<>();
+    
+    
     
     private String pareRequestURI(HttpServletRequest request){
         String path = request.getContextPath()+"/";
@@ -37,7 +53,7 @@ public class AnnotationHandleServlet extends HttpServlet {
     
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        this.excute(request, response);
+        this.doPost(request, response);
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -105,7 +121,7 @@ public class AnnotationHandleServlet extends HttpServlet {
          * 就会出现java.lang.NullPointerException异常
          */
         super.init(config); 
-        System.out.println("---初始化开始---");
+        logger.info("---初始化开始---");
         //获取web.xml中配置的要扫描的包
         String basePackage = config.getInitParameter("basePackage");
         //如果配置了多个包，例如：<param-value>me.gacl.web.controller,me.gacl.web.UI</param-value>

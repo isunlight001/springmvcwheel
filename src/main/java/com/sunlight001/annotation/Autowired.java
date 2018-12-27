@@ -8,13 +8,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 定义请求路径的java annotation
- * 作用在类上和方法上
- */
-@Target({ElementType.TYPE,ElementType.METHOD}) 
-@Retention(RetentionPolicy.RUNTIME)  
+* @ClassName: Controller
+* @Description: 自定义Controller注解
+*/ 
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 @Documented
-public @interface RequestMapping {
+public @interface Autowired {
 
     public String value() default "";
     
