@@ -1,6 +1,7 @@
 # Maven #
 target/
 build/
+bin/
 
 # IDEA #
 .idea/
