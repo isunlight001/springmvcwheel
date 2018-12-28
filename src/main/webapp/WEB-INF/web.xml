@@ -5,7 +5,7 @@
     <servlet-class>com.sunlight001.servlet.DispatcherServlet</servlet-class>
     <init-param>
       <description>配置要扫描包及其子包</description>
-      <param-name>basePackage</param-name>
+      <param-name>configLocation</param-name>
       <param-value>application.properties</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>

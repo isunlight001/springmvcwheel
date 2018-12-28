@@ -22,10 +22,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sunlight001.annotation.Autowired;
 import com.sunlight001.annotation.Controller;
+import com.sunlight001.annotation.RequestMapping;
 import com.sunlight001.annotation.Service;
 
 /**
- * 
+ * DispatcherServlet
  * @author sunlight001
  * 2018年12月27日
  */
@@ -36,27 +37,18 @@ public class DispatcherServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Logger log = Logger.getLogger("init DispatcherServlet");
     private Properties properties = new Properties();
-    private List<String> classNames = new ArrayList<>();
+    //class names 
+    private List<String> clsNames = new ArrayList<>();
     //ioc container
-    private Map<String,Object> ioc = new HashMap<>();
+    private static Map<String,Object> ioc = new HashMap<>();
     private Map<String,Method> handlerMapping = new HashMap<>();
     private Map<String,Object> controllerMap = new HashMap<>();
-    
-    
-    
-    private String pareRequestURI(HttpServletRequest request){
-        String path = request.getContextPath()+"/";
-        String requestUri = request.getRequestURI();
-        String midUrl = requestUri.replaceFirst(path, "");
-        String lasturl = midUrl.substring(0, midUrl.lastIndexOf("."));
-        return lasturl;
-    }
-    
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         this.doPost(request, response);
     }
-
+    @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         // 注释掉父类实现，不然会报错：405 HTTP method GET is not supported by this URL
@@ -117,12 +109,10 @@ public class DispatcherServlet extends HttpServlet {
         //利用反射机制来调用
         try {
             //第一个参数是method所对应的实例 在ioc容器中
-            //method.invoke(this.controllerMap.get(url), paramValues);
             method.invoke(this.controllerMap.get(url), paramValues);
         } catch (Exception e) {
             e.printStackTrace();
         }
-		
 	}
 
 	
@@ -137,7 +127,7 @@ public class DispatcherServlet extends HttpServlet {
         super.init(config); 
         log.info("---初始化开始---");
         //1.加载配置文件，填充properties字段；
-        doLoadConfig(config.getInitParameter("contextConfigLocation"));
+        doLoadConfig(config.getInitParameter("configLocation"));
         
         //2.根据properties，初始化所有相关联的类,扫描用户设定的包下面所有的类
         doScanner(properties.getProperty("scanPackage"));
@@ -150,44 +140,56 @@ public class DispatcherServlet extends HttpServlet {
 
         //5.初始化HandlerMapping(将url和method对应上)
         initHandlerMapping();
+        
 
-        doAutowired2();
+
 
         log.info("---初始化结束---");
     }
     
-    private void doAutowired2() {
-        if (controllerMap.isEmpty()){
+  
+    /**
+     * 处理RequestMapping
+     * 初始化HandlerMapping(将url和method对应上)
+     * 2018年12月28日
+     */
+	private void initHandlerMapping() {
+        if(ioc.isEmpty()){
             return;
         }
-        for (Map.Entry<String,Object> entry:controllerMap.entrySet()){
-            //包括私有的方法，在spring中没有隐私，@MyAutowired可以注入public、private字段
-            Field[] fields=entry.getValue().getClass().getDeclaredFields();
-            for (Field field:fields){
-                if (!field.isAnnotationPresent(Autowired.class)){
-                    continue;
-                }
-                Autowired autowired= field.getAnnotation(Autowired.class);
-                String beanName=autowired.value().trim();
-                if ("".equals(beanName)){
-                    beanName=field.getType().getName();
-                }
-                field.setAccessible(true);
-                try {
-                    field.set(entry.getValue(),ioc.get(beanName));
-                }catch (Exception e){
-                    e.printStackTrace();
+        try {
+            for (Map.Entry<String, Object> entry: ioc.entrySet()) {
+                Class<? extends Object> clazz = entry.getValue().getClass();
+                if(!clazz.isAnnotationPresent(Controller.class)){
                     continue;
                 }
 
+                //拼url时,是controller头的url拼上方法上的url
+                String baseUrl ="";
+                if(clazz.isAnnotationPresent(RequestMapping.class)){
+                    RequestMapping annotation = clazz.getAnnotation(RequestMapping.class);
+                    baseUrl=annotation.value();
+                }
+                Method[] methods = clazz.getMethods();
+                for (Method method : methods) {
+                    if(!method.isAnnotationPresent(RequestMapping.class)){
+                        continue;
+                    }
+                    RequestMapping annotation = method.getAnnotation(RequestMapping.class);
+                    String url = annotation.value();
+
+                    url =(baseUrl+"/"+url).replaceAll("/+", "/");
+                    handlerMapping.put(url,method);
+                    controllerMap.put(url,clazz.newInstance());
+                    System.out.println(url+","+method);
+                }
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 	}
-
-	private void initHandlerMapping() {
-		// TODO Auto-generated method stub
-		
-	}
+	
 	/**
 	 * 自动化的依赖注入
 	 * 2018年12月27日
@@ -220,16 +222,17 @@ public class DispatcherServlet extends HttpServlet {
         }
 	}
 	/**
+	 * 处理Controller和Service
 	 * 将classNames中的类实例化，经key-value：类名（小写）-类对象放入ioc字段中
 	 * 2018年12月27日
 	 */
 	private void doInstance() {
-        if (classNames.isEmpty()) {
+        if (clsNames.isEmpty()) {
             return;
         }
-        for (String className : classNames) {
+        for (String className : clsNames) {
             try {
-                //把类搞出来,反射来实例化(只有加@MyController需要实例化)
+                //把类搞出来,反射来实例化(只有加@Controller需要实例化)
                 Class<?> clazz =Class.forName(className);
                 if(clazz.isAnnotationPresent(Controller.class)){
                     ioc.put(toLowerFirstWord(clazz.getSimpleName()),clazz.newInstance());
@@ -281,7 +284,7 @@ public class DispatcherServlet extends HttpServlet {
                 doScanner(packageName+"."+file.getName());
             }else{
                 String className =packageName +"." +file.getName().replace(".class", "");
-                classNames.add(className);
+                clsNames.add(className);
             }
         }
 	}
