@@ -37,12 +37,17 @@ public class DispatcherServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Logger log = Logger.getLogger("init DispatcherServlet");
     private Properties properties = new Properties();
-    //class names 
+    /**
+     * class names
+     */
     private List<String> clsNames = new ArrayList<>();
-    //ioc container
+    /**
+     * ioc container
+     */
     private static Map<String,Object> ioc = new HashMap<>();
     private Map<String,Method> handlerMapping = new HashMap<>();
     private Map<String,Object> controllerMap = new HashMap<>();
+
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -90,16 +95,16 @@ public class DispatcherServlet extends HttpServlet {
         for (int i = 0; i<parameterTypes.length; i++){
             //根据参数名称，做某些处理
             String requestParam = parameterTypes[i].getSimpleName();
-            if (requestParam.equals("HttpServletRequest")){
+            if ("HttpServletRequest".equals(requestParam)){
                 //参数类型已明确，这边强转类型
                 paramValues[i]=req;
                 continue;
             }
-            if (requestParam.equals("HttpServletResponse")){
+            if ("HttpServletResponse".equals(requestParam)){
                 paramValues[i]=resp;
                 continue;
             }
-            if(requestParam.equals("String")){
+            if("String".equals(requestParam)){
                 for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
                     String value =Arrays.toString(param.getValue()).replaceAll("\\[|\\]", "").replaceAll(",\\s", ",");
                     paramValues[i]=value;

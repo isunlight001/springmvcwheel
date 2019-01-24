@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 /**
  * 定义请求路径的java annotation
  * 作用在类上和方法上,使用数组
+ * @author sunlight001
  */
 @Target({ElementType.TYPE,ElementType.METHOD}) 
 @Retention(RetentionPolicy.RUNTIME)  
